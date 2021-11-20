@@ -1,1 +1,0 @@
-### Simple node sli application

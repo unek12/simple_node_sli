@@ -1,0 +1,22 @@
+{
+  "name": "rs_task2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unek12/simple_node_sli.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unek12/simple_node_sli/issues"
+  },
+  "homepage": "https://github.com/unek12/simple_node_sli#readme",
+  "dependencies": {
+    "jest": "^27.3.1"
+  }
+}

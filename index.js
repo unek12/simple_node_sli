@@ -1,74 +1,34 @@
-const {checkValidFile, checkValidConfig} = require('./src/validators')
+const {getConfig} = require('./src/validator')
 const {cipher} = require('./src/cipher')
-const {stdin, stdout} = require('process')
-const rl = require('node:readline/promises').createInterface(stdin, stdout)
 const fs = require('fs');
 const argv = process.argv.slice(2)
-let writer = fs.createWriteStream('./output.txt')
+const stream = require('stream');
 
-process.stdin.on("data", (data) => {
-    options.output = data.toString()
-    options.cipherArgs.forEach(item => options.output = cipher(options.output, item))
-    writer.write(options.output)
-})
+async function main() {
+    const {config ,output, input} = getConfig(argv)
 
-const options = {
-    inputFile: '',
-    inputFlag: false,
-    outputFile: '',
-    outputFlag: '',
-    configFlag: false,
-    cipherArgs: []
-};
+    let reader = fs.existsSync(input) ?
+        fs.createReadStream(input) :
+        process.stdin
 
-(async () => {
-        while (!options.inputFlag || !options.outputFlag || !options.configFlag) {
-            if (argv[0] === '-c' || argv[0] === '--config') {
-                argv.shift()
-                options.cipherArgs = argv.shift()?.split('-')
+    let writer = fs.existsSync(output) ?
+        fs.createWriteStream(output, {flags: 'a'}) :
+        fs.createWriteStream('./output.txt')
 
-                if (!checkValidConfig(options.cipherArgs)) {
-                    process.exit(1)
-                }
-                options.configFlag = true
-
-            } else if (argv[0] === '-i' || argv[0] === '--input') {
-
-                argv.shift()
-                options.inputFile = argv.shift()
-
-                if (!checkValidFile(options.inputFile, "not exist input file")) {
-                    process.exit(2)
-                }
-
-                options.output = await fs.readFileSync(options.inputFile).toString()
-
-                options.inputFlag = true
-                options.cipherArgs.forEach(item => options.output = cipher(options.output, item))
-
-            } else if (argv[0] === '-o' || argv[0] === '--output') {
-
-                argv.shift()
-
-                if (!checkValidFile(argv[0], "not exist output file")) {
-                    process.exit(2)
-                }
-                options.outputFile = argv.shift()
-                // writer = fs.createWriteStream(options.outputFile)
-                options.outputFlag = true
-            } else {
-                if (!options.configFlag) {
-                    process.stderr.write('not exist config')
-                    process.exit(3)
-                }
-
-                if (!options.inputFlag) {
-                    await rl.question('')
-                }
+    await stream.pipeline(
+        reader,
+        async function * (source) {
+            for await (const chunk of source) {
+                let res = chunk.toString()
+                config.split('-').forEach(item => res = cipher(res, item))
+                yield res
             }
-        }
-        writer.write('qwe')
-        writer.end()
-        process.exit(0)
-    }
-)()
+        },
+        writer,
+        (e) => {
+            process.stderr.write(e)
+            process.exit(1)
+        })
+}
+
+main().catch(e => process.stderr.write(e))

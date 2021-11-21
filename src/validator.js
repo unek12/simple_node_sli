@@ -1,70 +1,48 @@
-function cipher(input = '', item = '') {
-    if (!input.length) return
-    if (item.length) {
-        if (item[0] === 'A') {
-            const code = input?.split('').map(item => item.charCodeAt(0)) ?? []
-            const newCode = code.map(code => {
-                if (65 <= code && code <= 90) {
-                    return 155 - code
-                }
-                if (97 <= code && code <= 122) {
-                    return 219 - code
-                }
-                return code
-            })
-            return String.fromCharCode(...newCode)
-        }
-        if (item[0] === 'C') {
-            const code = input?.split('').map(item => item.charCodeAt(0)) ?? []
-            const newCode = code.map(code => {
-                const operation = parseInt(item[1])
-                if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-                    if (code === 65) {
-                        return operation ? code + 1 : 90
-                    }
-                    if (code === 90) {
-                        return operation ? 65 : code - 1
-                    }
-                    if (code === 97) {
-                        return operation ? code + 1 : 122
-                    }
-                    if (code === 122) {
-                        return operation ? 97 : code - 1
-                    }
-                    return operation ? code + 1 : code - 1
-                }
-                return code
-            })
-            return String.fromCharCode(...newCode)
-        }
-        if (item[0] === 'R') {
-            const code = input.split('').map(item => item.charCodeAt(0))
-            const newCode = code.map(code => {
-                const operation = parseInt(item[1])
-                if (code >= 65 && code <= 90) {
-                    if (code < 65 + 8) {
-                        return operation ? code + 8 : code + 18
-                    }
-                    if (code > 90 - 8) {
-                        return operation ? code - 18 : code - 8
-                    }
-                    return operation ? code + 8 : code - 8
-                }
-                if (code >= 97 && code <= 122) {
-                    if (code < 97 + 8) {
-                        return operation ? code + 8 : code + 18
-                    }
-                    if (code > 122 - 8) {
-                        return operation ? code - 18 : code - 8
-                    }
-                    return operation ? code + 8 : code - 8
-                }
-                return code
-            })
-            return String.fromCharCode(...newCode)
-        }
+function getConfig(argv) {
+    const optionFlags = {}
+    argv.forEach(item => !(item in optionFlags && item.includes('-')) ? optionFlags[item] = 1 : (() => {
+        process.stderr.write('have duplicate arguments')
+        process.exit(2)
+    })())
+    const config = {
+        config: '',
+        input: '',
+        output: ''
     }
-    return input
+
+    if (argv.indexOf('-c') !== -1){
+        config.config = argv[argv.indexOf('-c') + 1]
+    }else if (argv.indexOf('--config') !== -1){
+        config.config = argv[argv.indexOf('--config') + 1]
+    } else {
+        process.stderr.write('not exist config')
+        process.exit(2)
+    }
+
+    if (!configValidator(config.config)) {
+        process.stderr.write('invalid config')
+        process.exit(3)
+    }
+
+    if (argv.indexOf('-i') !== -1){
+        config.input = argv[argv.indexOf('-i') + 1]
+    }
+    if (argv.indexOf('--input') !== -1){
+        config.input = argv[argv.indexOf('--input') + 1]
+    }
+    if (argv.indexOf('-o') !== -1){
+        config.output = argv[argv.indexOf('-o') + 1]
+    }
+    if (argv.indexOf('--output') !== -1){
+        config.output = argv[argv.indexOf('--output') + 1]
+    }
+    return config
 }
 
-module.exports = {cipher}
+function configValidator(config) {
+    return  config.split('-').every(item => ['A', 'C1', 'C0', 'R1', 'R0'].indexOf(item) !== -1)
+}
+
+module.exports = {
+    getConfig
+}

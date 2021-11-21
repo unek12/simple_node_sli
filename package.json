@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/unek12/simple_node_sli#readme",
   "dependencies": {
-    "jest": "^27.3.1"
+    "jest": "^27.3.1",
+    "process": "^0.11.10"
   }
 }
